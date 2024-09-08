@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="da">
+  <head>
+    <meta charset="utf-8" />
+    <title>Open Food Facts</title>
+    <meta name="robots" content="All" />
+    <meta name="author" content="Udgiver" />
+    <meta name="copyright" content="Information om copyright" />
+    <link href="css/styles.css" rel="stylesheet" type="text/css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <h1>Søg efter produkter med "cola" i navnet</h1>
+
+    <!-- Søgefelt -->
+    <input
+      type="text"
+      id="search-input"
+      placeholder="Indtast produktnavn her..."
+    />
+    <button id="search-button">Søg</button>
+
+    <!-- Container til søgeresultater -->
+    <div id="results"></div>
+
+    <script>
+      const searchButton = document.getElementById("search-button");
+      const searchInput = document.getElementById("search-input");
+      const resultsContainer = document.getElementById("results");
+
+      // Når brugeren klikker på søgeknappen, sendes en søgning til API'et
+      searchButton.addEventListener("click", () => {
+        const query = searchInput.value.trim(); // Henter søgeord fra inputfeltet
+
+        if (query) {
+          // URL til API-anmodningen med brugerens input
+          const url = `https://dk.openfoodfacts.org/cgi/search.pl?search_terms=${query}&search_simple=1&action=process&json=1`;
+
+          // Fetch anmodning til Open Food Facts API
+          fetch(url)
+            .then((response) => response.json())
+            .then((json) => {
+              // Tøm tidligere søgeresultater
+              resultsContainer.innerHTML = "";
+
+              // Tjek om der er produkter i svaret
+              if (json.products.length > 0) {
+                // Gennemgå produkterne og tilføj dem til resultaterne
+                json.products.forEach((product) => {
+                  const productDiv = document.createElement("div");
+                  productDiv.innerHTML = `
+                    <h3>${product.product_name}</h3>
+                    <p>Brand: ${product.brands || "N/A"}</p>
+                    <p>Stregkode: ${product.code || "Ingen stregkode"}</p>
+                    <img src="${
+                      product.image_url || "path/to/placeholder-image.jpg"
+                    }" alt="${product.product_name}" style="max-width:100px;">
+                  `;
+                  resultsContainer.appendChild(productDiv);
+                });
+              } else {
+                // Hvis der ikke findes produkter
+                resultsContainer.innerHTML = "<p>Ingen produkter fundet.</p>";
+              }
+            })
+            .catch((error) => {
+              console.error("Fejl:", error);
+              resultsContainer.innerHTML =
+                "<p>Der opstod en fejl. Prøv igen senere.</p>";
+            });
+        } else {
+          resultsContainer.innerHTML =
+            "<p>Indtast et produktnavn for at søge.</p>";
+        }
+      });
+    </script>
+  </body>
+</html>
